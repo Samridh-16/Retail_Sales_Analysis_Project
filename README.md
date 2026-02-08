@@ -1,4 +1,4 @@
-Retail Sales Performance Analysis
+# Retail Sales Performance Analysis
 Overview
 
 This project analyzes a Retail Sales dataset sourced from Kaggle to evaluate business performance across revenue trends, product performance, customer behavior, and profitability.
