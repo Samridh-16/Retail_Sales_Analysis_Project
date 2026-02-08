@@ -1,0 +1,30 @@
+-- Business Problem: Compare sales performance during holiday months vs regular months for inventory planning
+WITH seasonal_classification AS (
+    SELECT 
+        *,
+        CASE 
+            WHEN month IN (11, 12) THEN 'Holiday Season'
+            WHEN month IN (6, 7, 8) THEN 'Summer Season'
+            WHEN month IN (3, 4, 5) THEN 'Spring Season'
+            ELSE 'Regular Season'
+        END AS season_type,
+        CASE 
+            WHEN month IN (11, 12, 1) THEN 'Holiday Period'
+            ELSE 'Regular Period'
+        END AS holiday_classification
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+)
+SELECT 
+    season_type,
+    holiday_classification,
+    product_category,
+    COUNT(*) AS total_transactions,
+    SUM(revenue) AS total_revenue,
+    AVG(revenue) AS avg_transaction_value,
+    SUM(quantity) AS total_items_sold,
+    ROUND(SUM(profit), 2) AS total_profit,
+    ROUND(AVG(profit_margin) * 100, 2) AS avg_profit_margin_pct,
+    ROUND(SUM(revenue) / COUNT(*), 2) AS revenue_per_transaction
+FROM seasonal_classification
+GROUP BY season_type, holiday_classification, product_category
+ORDER BY season_type, holiday_classification, total_revenue DESC;

@@ -1,0 +1,29 @@
+-- Business Problem: Understand which product categories drive revenue across different demographic segments
+WITH category_demographics AS (
+    SELECT 
+        product_category,
+        gender,
+        age_group,
+        COUNT(*) AS transactions,
+        SUM(revenue) AS category_revenue,
+        SUM(profit) AS category_profit,
+        AVG(price_per_unit) AS avg_price_point
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+    GROUP BY product_category, gender, age_group
+),
+total_revenue AS (
+    SELECT SUM(revenue) AS overall_revenue
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+)
+SELECT 
+    cd.product_category,
+    cd.gender,
+    cd.age_group,
+    cd.transactions,
+    cd.category_revenue,
+    ROUND(cd.category_profit, 2) AS category_profit,
+    ROUND(cd.avg_price_point, 2) AS avg_price_point,
+    ROUND((cd.category_revenue / tr.overall_revenue) * 100, 2) AS revenue_contribution_pct
+FROM category_demographics cd
+CROSS JOIN total_revenue tr
+ORDER BY cd.category_revenue DESC;

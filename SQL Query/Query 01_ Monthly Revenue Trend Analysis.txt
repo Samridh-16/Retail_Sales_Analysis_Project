@@ -1,0 +1,13 @@
+-- Business Problem: Track monthly revenue performance to identify seasonal patterns and growth trends
+SELECT 
+    year,
+    month,
+    month_name,
+    COUNT(*) AS total_transactions,
+    SUM(revenue) AS total_revenue,
+    AVG(revenue) AS avg_order_value,
+    ROUND(SUM(profit), 2) AS total_profit,
+    ROUND(AVG(profit_margin) * 100, 2) AS avg_profit_margin_pct
+FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+GROUP BY year, month, month_name
+ORDER BY year, month;

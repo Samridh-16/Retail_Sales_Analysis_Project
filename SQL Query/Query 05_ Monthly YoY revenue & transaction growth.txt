@@ -1,0 +1,32 @@
+-- Business Problem:Monthly YoY revenue & transaction growth 
+WITH monthly AS (
+  SELECT
+    DATE_TRUNC(date, MONTH) AS month_date,
+    SUM(revenue) AS monthly_revenue,
+    COUNT(*) AS monthly_transactions
+  FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+  GROUP BY month_date
+),
+lagged AS (
+  SELECT
+    month_date,
+    EXTRACT(YEAR FROM month_date) AS year,
+    EXTRACT(MONTH FROM month_date) AS month,
+    monthly_revenue,
+    monthly_transactions,
+    LAG(monthly_revenue, 12) OVER (ORDER BY month_date) AS prev_year_revenue,
+    LAG(monthly_transactions, 12) OVER (ORDER BY month_date) AS prev_year_transactions
+  FROM monthly
+)
+SELECT
+  month_date,
+  year,
+  month,
+  monthly_revenue,
+  prev_year_revenue,
+  ROUND(SAFE_DIVIDE(monthly_revenue - prev_year_revenue, prev_year_revenue) * 100, 2) AS yoy_revenue_growth_pct,
+  monthly_transactions,
+  prev_year_transactions,
+  ROUND(SAFE_DIVIDE(monthly_transactions - prev_year_transactions, prev_year_transactions) * 100, 2) AS yoy_transaction_growth_pct
+FROM lagged
+ORDER BY month_date;

@@ -1,0 +1,27 @@
+-- Business Problem: Identify high-value customers for VIP programs and targeted marketing
+WITH customer_metrics AS (
+    SELECT 
+        customer_id,
+        gender,
+        age_group,
+        COUNT(*) AS total_transactions,
+        SUM(revenue) AS total_spent,
+        SUM(quantity) AS total_items_purchased,
+        AVG(revenue) AS avg_order_value,
+        STRING_AGG(DISTINCT product_category) AS purchased_categories
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+    GROUP BY customer_id, gender, age_group
+)
+SELECT 
+    customer_id,
+    gender,
+    age_group,
+    total_transactions,
+    total_spent,
+    total_items_purchased,
+    ROUND(avg_order_value, 2) AS avg_order_value,
+    purchased_categories,
+    RANK() OVER (ORDER BY total_spent DESC) AS spending_rank
+FROM customer_metrics
+ORDER BY total_spent DESC
+LIMIT 10;

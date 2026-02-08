@@ -1,0 +1,45 @@
+-- Business Problem: Identify top-performing products by quarter to optimize inventory and marketing focus
+WITH quarterly_product_performance AS (
+    SELECT 
+        year,
+        quarter,
+        CONCAT('Q', quarter, ' ', year) AS quarter_year,
+        product_category,
+        price_per_unit,
+        COUNT(*) AS units_sold,
+        SUM(revenue) AS product_revenue,
+        SUM(profit) AS product_profit,
+        AVG(profit_margin) AS avg_profit_margin,
+        SUM(quantity) AS total_quantity
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+    GROUP BY year, quarter, product_category, price_per_unit
+),
+ranked_products AS (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY year, quarter 
+            ORDER BY product_profit DESC, product_revenue DESC
+        ) AS profit_rank,
+        RANK() OVER (
+            PARTITION BY year, quarter, product_category 
+            ORDER BY product_profit DESC
+        ) AS category_rank,
+        ROUND(product_profit, 2) AS rounded_profit,
+        ROUND(avg_profit_margin * 100, 2) AS profit_margin_pct
+    FROM quarterly_product_performance
+)
+SELECT 
+    quarter_year,
+    product_category,
+    price_per_unit,
+    units_sold,
+    product_revenue,
+    rounded_profit AS product_profit,
+    profit_margin_pct,
+    total_quantity,
+    profit_rank,
+    category_rank
+FROM ranked_products
+WHERE profit_rank <= 5
+ORDER BY year, quarter, profit_rank;

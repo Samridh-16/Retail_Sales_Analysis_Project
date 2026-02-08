@@ -1,0 +1,49 @@
+-- Business Problem: Analyze profitability trends by category with moving averages for strategic planning
+WITH daily_category_profits AS (
+    SELECT 
+        DATE(date) AS transaction_date,
+        product_category,
+        SUM(revenue) AS daily_revenue,
+        SUM(profit) AS daily_profit,
+        SUM(quantity) AS daily_quantity,
+        COUNT(*) AS daily_transactions
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+    GROUP BY transaction_date, product_category
+),
+profit_with_moving_avg AS (
+    SELECT 
+        transaction_date,
+        product_category,
+        daily_revenue,
+        daily_profit,
+        daily_quantity,
+        daily_transactions,
+        ROUND(AVG(daily_profit) OVER (
+            PARTITION BY product_category 
+            ORDER BY transaction_date 
+            ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+        ), 2) AS profit_7day_moving_avg,
+        ROUND(AVG(daily_revenue) OVER (
+            PARTITION BY product_category 
+            ORDER BY transaction_date 
+            ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
+        ), 2) AS revenue_30day_moving_avg,
+        RANK() OVER (
+            PARTITION BY product_category 
+            ORDER BY daily_profit DESC
+        ) AS daily_profit_rank
+    FROM daily_category_profits
+)
+SELECT 
+    product_category,
+    transaction_date,
+    daily_revenue,
+    ROUND(daily_profit, 2) AS daily_profit,
+    daily_quantity,
+    daily_transactions,
+    profit_7day_moving_avg,
+    revenue_30day_moving_avg,
+    daily_profit_rank
+FROM profit_with_moving_avg
+WHERE daily_profit_rank <= 5   -- Top 5 most profitable days per category
+ORDER BY product_category, daily_profit DESC;

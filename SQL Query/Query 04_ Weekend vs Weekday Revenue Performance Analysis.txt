@@ -1,0 +1,17 @@
+-- Business Problem: Compare weekend and weekday sales performance to optimize staffing and promotions
+SELECT 
+    is_weekend,
+    CASE 
+        WHEN is_weekend THEN 'Weekend'
+        ELSE 'Weekday'
+    END AS period_type,
+    COUNT(*) AS total_transactions,
+    SUM(revenue) AS total_revenue,
+    AVG(revenue) AS avg_transaction_value,
+    SUM(quantity) AS total_items_sold,
+    AVG(quantity) AS avg_items_per_transaction,
+    ROUND(SUM(profit), 2) AS total_profit,
+    ROUND(AVG(profit_margin) * 100, 2) AS avg_profit_margin_pct
+FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+GROUP BY is_weekend
+ORDER BY total_revenue DESC;

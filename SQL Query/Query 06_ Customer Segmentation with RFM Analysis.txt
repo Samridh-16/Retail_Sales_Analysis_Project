@@ -1,0 +1,48 @@
+-- Business Problem: Segment customers based on Recency, Frequency, and Monetary value (RFM)
+WITH customer_rfm AS (
+    SELECT 
+        customer_id,
+        gender,
+        age_group,
+        DATE_DIFF(DATE '2024-01-01', MAX(DATE(date)), DAY) AS recency_days,
+        COUNT(*) AS frequency,
+        SUM(revenue) AS monetary_value,
+        ROUND(AVG(revenue), 2) AS avg_order_value
+    FROM `elaborate-art-471212-d9.Retail_Sales_Dataset.Retail_Sales_cleaned`
+    GROUP BY customer_id, gender, age_group
+),
+rfm_scored AS (
+    SELECT 
+        customer_id,
+        gender,
+        age_group,
+        recency_days,
+        frequency,
+        monetary_value,
+        avg_order_value,
+        NTILE(5) OVER (ORDER BY recency_days ASC) AS recency_score,
+        NTILE(5) OVER (ORDER BY frequency DESC) AS frequency_score,
+        NTILE(5) OVER (ORDER BY monetary_value DESC) AS monetary_score
+    FROM customer_rfm
+)
+SELECT 
+    customer_id,
+    gender,
+    age_group,
+    recency_days,
+    frequency,
+    monetary_value,
+    avg_order_value,
+    recency_score,
+    frequency_score,
+    monetary_score,
+    CASE 
+        WHEN frequency_score >= 4 AND monetary_score >= 4 THEN 'Champions'
+        WHEN recency_score >= 3 AND frequency_score >= 3 AND monetary_score >= 3 THEN 'Loyal Customers'
+        WHEN recency_score >= 4 AND frequency_score <= 2 THEN 'New Customers'
+        WHEN recency_score <= 2 AND frequency_score >= 3 THEN 'At Risk'
+        WHEN recency_score <= 2 AND frequency_score <= 2 THEN 'Lost Customers'
+        ELSE 'Potential Loyalists'
+    END AS customer_segment
+FROM rfm_scored
+ORDER BY monetary_value DESC;
