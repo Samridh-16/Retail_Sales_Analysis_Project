@@ -95,14 +95,6 @@ This project includes:
 - Seasonal performance index
 - Top-performing products by quarter
 
-### Advanced SQL Techniques Applied
-
-- Common Table Expressions (CTEs)
-- Window functions (RANK, LAG, NTILE)
-- Moving averages
-- Revenue contribution percentage
-- Growth rate calculations
-
 ---
 
 ## Key Business Objective
